@@ -6,6 +6,7 @@ using LinkShortener.Models;
 using LinkShortener.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -30,6 +31,7 @@ namespace LinkShortener
         {
             // add config data and register linkservice in DI container
             services.Configure<DatabaseSettingModel>(Configuration.GetSection("LinkStoreDatabase"));
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddSingleton<LinksService>();
 
             services.AddControllers();
