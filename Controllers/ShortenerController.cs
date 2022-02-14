@@ -9,11 +9,12 @@ using LinkShortener.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Http;
+using System.Net.Http;
 
 namespace LinkShortener.Controllers
 {
     [ApiController]
-    [Route("[controller]/[action]")]
+    [Route("[controller]")]
     public class ShortenerController : ControllerBase
     {
         private readonly LinksService _linksService;
@@ -23,18 +24,34 @@ namespace LinkShortener.Controllers
             _linksService = linksService;
         }
 
-        [HttpGet]
-        public async Task<List<Link>> GetAll()
-        {
-            return await _linksService.GetAllAsync();
-        }
-
-        [HttpPost]
-        public async Task<CreateShortLinkResponse> Create(CreateShortLinkRequest request)
+        [HttpPost("create")]
+        public async Task<IActionResult> Create(CreateShortLinkRequest request)
         {
             var cookieData = HttpContext.Request.Cookies["Key"];
-            return await _linksService.CreateAsync(request, cookieData);
+            var newLink = await _linksService.CreateAsync(request, cookieData);
+            return Ok(newLink);
         }
 
+        // [HttpGet]
+        // public async Task<RedirectResult> Follow([FromQuery]FollowShortLinkRequest request)
+        // {
+        //     var originalUrl = await _linksService.GetOriginalLinkAsync(request.ShortLink);
+        //     return RedirectPermanent(originalUrl);
+        // }
+
+        [HttpGet("getOrigin")]
+        public async Task<IActionResult> GetOriginalLink([FromQuery]GetOriginalLinkRequest request)
+        {
+            var result = await _linksService.GetOriginalLinkAsync(request.ShortLink);
+            return result == null ? NoContent() : Ok(result);
+        }
+
+
+        [HttpGet("getAll")]
+        public async Task<IActionResult> GetAllLinks()
+        {
+            var result =  await _linksService.GetAllLinksAsync();
+            return result == null ? NoContent() : Ok(result);
+        }
     }
 }

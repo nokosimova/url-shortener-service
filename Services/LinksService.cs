@@ -34,13 +34,10 @@ namespace LinkShortener.Services{
 
         }
 
-        public async Task<List<Link>> GetAllAsync() =>
-            await _links.Find(_ => true).ToListAsync();
-
         public async Task<CreateShortLinkResponse> CreateAsync(CreateShortLinkRequest request, string cookieData)
         {
-            var link = await _links.Find(x => x.CookieValue == (cookieData??x.CookieValue)
-                                && x.LinkName == request.OriginalLink).FirstOrDefaultAsync();
+            var link = await _links.Find(x =>// x.CookieValue == (cookieData??x.CookieValue) && 
+                                x.LinkName == request.OriginalLink).FirstOrDefaultAsync();
             if (link != null)
             {
                 return new CreateShortLinkResponse {
@@ -61,6 +58,30 @@ namespace LinkShortener.Services{
                 };
         }
 
+        public async Task<List<GetLinkItemResponse>> GetAllLinksAsync()
+        {
+            var links = await _links.Find(_ => true).ToListAsync();
+            return links.Select(x => new GetLinkItemResponse{
+                        OriginalLink = x.LinkName,
+                        ShortLink = x.ShortName,
+                        VisitsCount = x.VisitsCount
+                    }).ToList();
+        }
+
+
+        public async Task<GetOriginalLinkResponse> GetOriginalLinkAsync(string shortLink)
+        {
+            var linkItem = await _links.Find(x => x.ShortName == shortLink).FirstOrDefaultAsync();
+            if (linkItem == null)
+                return null;
+            
+            IncreaseVisitsCount(linkItem); 
+            await _links.ReplaceOneAsync(x => x.Id == linkItem.Id, linkItem);        
+            
+            return new GetOriginalLinkResponse{
+                OriginalLink = linkItem.LinkName
+            };  
+        }
         private string GenerateShortLink()
         {
             var result = new string(Enumerable.Range(1, shortLinkLength).
@@ -72,6 +93,6 @@ namespace LinkShortener.Services{
             return baseUrl + '/' + result;
         }
 
-        private void IncreaseVisitCount(Link link) => link.VisitsCount ++;
+        private void IncreaseVisitsCount(Link link) => link.VisitsCount++;
     }
 }
