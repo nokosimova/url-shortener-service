@@ -31,13 +31,17 @@ namespace LinkShortener.Controllers
             var newLink = await _linksService.CreateAsync(request, cookieData);
             return newLink;
         }
-
-        // [HttpGet]
-        // public async Task<RedirectResult> Follow([FromRoute] string ShortLink)
-        // {
-        //     var originalUrl = await _linksService.GetOriginalLinkAsync(ShortLink);
-        //     return RedirectPermanent(originalUrl.OriginalLink);
-        // }
+                
+        [HttpGet("all")]
+        public async Task<List<GetLinkItemResponse>> GetAllLinks()
+        {
+            var result =  await _linksService.GetAllLinksAsync();
+            if (result == null) 
+            {
+                Response.StatusCode = 204;
+            }    
+            return result;
+        }
 
         [HttpGet("origin")]
         public async Task<GetOriginalLinkResponse> GetOriginalLink([FromQuery]GetOriginalLinkRequest request)
@@ -50,16 +54,5 @@ namespace LinkShortener.Controllers
             return result;
         }
 
-
-        [HttpGet("all")]
-        public async Task<List<GetLinkItemResponse>> GetAllLinks()
-        {
-            var result =  await _linksService.GetAllLinksAsync();
-            if (result == null) 
-            {
-                Response.StatusCode = 204;
-            }    
-            return result;
-        }
     }
 }

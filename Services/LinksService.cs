@@ -80,12 +80,12 @@ namespace LinkShortener.Services{
         private async Task<string> CreateShortLink()
         {
             var result = await GenerateLink();
-            var link = await _links.Find(Builders<Link>.Filter.Exists(x => x.ShortName == result)).ToListAsync();
+            var link = await _links.Find(Builders<Link>.Filter.Eq(x => x.ShortName, result)).ToListAsync();
 
-            while (!link.Any())
+            while (link.Any())
             {
                 result = await GenerateLink();
-                link = await _links.Find(Builders<Link>.Filter.Exists(x => x.ShortName == result)).ToListAsync();
+                link = await _links.Find(Builders<Link>.Filter.Eq(x => x.ShortName, result)).ToListAsync();
             }
             return new string(result);
         }
