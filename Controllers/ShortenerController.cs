@@ -14,7 +14,7 @@ using System.Net.Http;
 namespace LinkShortener.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/links")]
     public class ShortenerController : ControllerBase
     {
         private readonly LinksService _linksService;
@@ -24,34 +24,42 @@ namespace LinkShortener.Controllers
             _linksService = linksService;
         }
 
-        [HttpPost("create")]
-        public async Task<IActionResult> Create(CreateShortLinkRequest request)
+        [HttpPost("new")]
+        public async Task<CreateShortLinkResponse> Create(CreateShortLinkRequest request)
         {
             var cookieData = HttpContext.Request.Cookies["Key"];
             var newLink = await _linksService.CreateAsync(request, cookieData);
-            return Ok(newLink);
+            return newLink;
         }
 
         // [HttpGet]
-        // public async Task<RedirectResult> Follow([FromQuery]FollowShortLinkRequest request)
+        // public async Task<RedirectResult> Follow([FromRoute] string ShortLink)
         // {
-        //     var originalUrl = await _linksService.GetOriginalLinkAsync(request.ShortLink);
-        //     return RedirectPermanent(originalUrl);
+        //     var originalUrl = await _linksService.GetOriginalLinkAsync(ShortLink);
+        //     return RedirectPermanent(originalUrl.OriginalLink);
         // }
 
-        [HttpGet("getOrigin")]
-        public async Task<IActionResult> GetOriginalLink([FromQuery]GetOriginalLinkRequest request)
+        [HttpGet("origin")]
+        public async Task<GetOriginalLinkResponse> GetOriginalLink([FromQuery]GetOriginalLinkRequest request)
         {
             var result = await _linksService.GetOriginalLinkAsync(request.ShortLink);
-            return result == null ? NoContent() : Ok(result);
+            if (result == null) 
+            {
+                Response.StatusCode = 404;
+            }    
+            return result;
         }
 
 
-        [HttpGet("getAll")]
-        public async Task<IActionResult> GetAllLinks()
+        [HttpGet("all")]
+        public async Task<List<GetLinkItemResponse>> GetAllLinks()
         {
             var result =  await _linksService.GetAllLinksAsync();
-            return result == null ? NoContent() : Ok(result);
+            if (result == null) 
+            {
+                Response.StatusCode = 204;
+            }    
+            return result;
         }
     }
 }

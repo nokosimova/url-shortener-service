@@ -15,11 +15,10 @@ namespace LinkShortener.Services{
     {
         private readonly IMongoCollection<Link> _links;
         
-        private const int shortLinkLength = 5;
-        private const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        
-        private static Random random = new Random();
-        private static string baseUrl;
+        private const int _shortLength = 5;
+        private const string _chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        private static Random _random = new Random();
+        private static string _baseUrl;
 
 
         public LinksService(IOptions<DatabaseSettingModel> DatabaseSetting, IHttpContextAccessor accessor)
@@ -28,39 +27,33 @@ namespace LinkShortener.Services{
             var mongoClient = new MongoClient(DatabaseSetting.Value.ConnectionString);
             var mongoDatabase = mongoClient.GetDatabase(DatabaseSetting.Value.DatabaseName);            
             _links = mongoDatabase.GetCollection<Link>(DatabaseSetting.Value.CollectionName);
-
-            //get base Url for generating short links:
-            baseUrl = $"{accessor.HttpContext.Request.Scheme}://{accessor.HttpContext.Request.Host.ToUriComponent()}";
-
         }
 
         public async Task<CreateShortLinkResponse> CreateAsync(CreateShortLinkRequest request, string cookieData)
         {
-            var link = await _links.Find(x =>// x.CookieValue == (cookieData??x.CookieValue) && 
-                                x.LinkName == request.OriginalLink).FirstOrDefaultAsync();
-            if (link != null)
+            var filter = Builders<Link>.Filter.Eq(x => x.LinkName, request.OriginalLink);
+            var link = await _links.Find(filter).FirstOrDefaultAsync();
+
+            if (link == null)
             {
-                return new CreateShortLinkResponse {
-                    OriginalLink = link.LinkName,
-                    ShortLink = link.ShortName
+                link = new Link{
+                    LinkName = request.OriginalLink,
+                    CookieValue = cookieData,
+                    ShortName = await CreateShortLink()
                 };
+                await _links.InsertOneAsync(link);           
             }
 
-            var newLink = new Link{
-                LinkName = request.OriginalLink,
-                CookieValue = cookieData,
-                ShortName = GenerateShortLink()
-            };
-            await _links.InsertOneAsync(newLink);
             return new CreateShortLinkResponse{
-                    OriginalLink = newLink.LinkName,
-                    ShortLink = newLink.ShortName
+                    OriginalLink = link.LinkName,
+                    ShortLink = link.ShortName
                 };
         }
 
         public async Task<List<GetLinkItemResponse>> GetAllLinksAsync()
         {
-            var links = await _links.Find(_ => true).ToListAsync();
+            var links = await _links.Find(Builders<Link>.Filter.Empty).ToListAsync();
+
             return links.Select(x => new GetLinkItemResponse{
                         OriginalLink = x.LinkName,
                         ShortLink = x.ShortName,
@@ -71,28 +64,37 @@ namespace LinkShortener.Services{
 
         public async Task<GetOriginalLinkResponse> GetOriginalLinkAsync(string shortLink)
         {
-            var linkItem = await _links.Find(x => x.ShortName == shortLink).FirstOrDefaultAsync();
-            if (linkItem == null)
-                return null;
+            var filter = Builders<Link>.Filter.Eq(x => x.ShortName, shortLink);
+            var link = await _links.Find(filter).FirstOrDefaultAsync();
             
-            IncreaseVisitsCount(linkItem); 
-            await _links.ReplaceOneAsync(x => x.Id == linkItem.Id, linkItem);        
-            
+            if (link != null)
+            {
+                var update = Builders<Link>.Update.Set(x  => x.VisitsCount, link.VisitsCount + 1);
+                await _links.UpdateOneAsync(filter, update);       
+            }    
+                        
             return new GetOriginalLinkResponse{
-                OriginalLink = linkItem.LinkName
+                OriginalLink = link?.LinkName
             };  
         }
-        private string GenerateShortLink()
+        private async Task<string> CreateShortLink()
         {
-            var result = new string(Enumerable.Range(1, shortLinkLength).
-                                Select(_ => chars[random.Next(chars.Length)]).ToArray());
-            
-            while (_links.Find(x => x.ShortName == result).FirstOrDefault() != null)
-                result = new string(Enumerable.Range(1, shortLinkLength).
-                         Select(_ => chars[random.Next(chars.Length)]).ToArray());
-            return baseUrl + '/' + result;
+            var result = await GenerateLink();
+            var link = await _links.Find(Builders<Link>.Filter.Exists(x => x.ShortName == result)).ToListAsync();
+
+            while (!link.Any())
+            {
+                result = await GenerateLink();
+                link = await _links.Find(Builders<Link>.Filter.Exists(x => x.ShortName == result)).ToListAsync();
+            }
+            return new string(result);
         }
 
-        private void IncreaseVisitsCount(Link link) => link.VisitsCount++;
+        private async Task<string> GenerateLink()
+        {
+            var result = new string(Enumerable.Range(1, _shortLength).
+                                Select(_ => _chars[_random.Next(_chars.Length)]).ToArray());
+            return result;
+        }
     }
 }
