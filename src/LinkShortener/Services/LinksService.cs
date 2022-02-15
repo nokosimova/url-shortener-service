@@ -27,6 +27,9 @@ namespace LinkShortener.Services{
             var mongoClient = new MongoClient(DatabaseSetting.Value.ConnectionString);
             var mongoDatabase = mongoClient.GetDatabase(DatabaseSetting.Value.DatabaseName);            
             _links = mongoDatabase.GetCollection<Link>(DatabaseSetting.Value.CollectionName);
+
+             //get base Url for generating short links:
+            _baseUrl = $"{accessor.HttpContext.Request.Scheme}://{accessor.HttpContext.Request.Host.ToUriComponent()}";
         }
 
         public async Task<CreateShortLinkResponse> CreateAsync(CreateShortLinkRequest request, string cookieData)

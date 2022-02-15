@@ -36,10 +36,10 @@ namespace LinkShortener.Controllers
         public async Task<List<GetLinkItemResponse>> GetAllLinks()
         {
             var result =  await _linksService.GetAllLinksAsync();
-            if (result == null) 
+            if (result == null)
             {
                 Response.StatusCode = 204;
-            }    
+            }
             return result;
         }
 
