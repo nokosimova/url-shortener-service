@@ -18,6 +18,8 @@ namespace LinkShortener.Controllers
 
         [Route("{shortLink}")]
         [HttpGet]
+        [ProducesResponseType(301)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> Follow(string shortLink)
         {
             var originalUrl = await _linksService.GetOriginalLinkAsync(shortLink);

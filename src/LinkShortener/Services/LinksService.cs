@@ -53,7 +53,7 @@ namespace LinkShortener.Services{
 
             return new CreateShortLinkResponse{
                     OriginalLink = link.LinkName,
-                    ShortLink = _baseUrl + link.ShortName
+                    ShortLink = link.ShortName
                 };
         }
 
@@ -63,7 +63,7 @@ namespace LinkShortener.Services{
 
             return links.Select(x => new GetLinkItemResponse{
                         OriginalLink = x.LinkName,
-                        ShortLink = _baseUrl + x.ShortName,
+                        ShortLink = x.ShortName,
                         VisitsCount = x.VisitsCount
                     }).ToList();
         }
@@ -71,7 +71,7 @@ namespace LinkShortener.Services{
 
         public async Task<GetOriginalLinkResponse> GetOriginalLinkAsync(string shortLink)
         {
-            var filter = Builders<Link>.Filter.Eq(x => x.ShortName, shortLink);
+            var filter = Builders<Link>.Filter.Eq(x => x.ShortName, _baseUrl + shortLink);
             var link = await _links.Find(filter).FirstOrDefaultAsync();
             
             if (link != null)

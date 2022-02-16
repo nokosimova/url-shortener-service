@@ -34,12 +34,14 @@ namespace LinkShortener.Controllers
         }
                 
         [HttpGet("all")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(204)]
         public async Task<List<GetLinkItemResponse>> GetAllLinks()
         {
             var cookieData = Request.Cookies.Keys;
             
             var result =  await _linksService.GetAllLinksAsync();
-            if (result == null)
+            if (result == null || !result.Any())
             {
                 Response.StatusCode = 204;
             }
