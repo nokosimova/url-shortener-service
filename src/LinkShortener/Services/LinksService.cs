@@ -42,10 +42,11 @@ namespace LinkShortener.Services{
 
             if (link == null)
             {
+                var newShortLink = await CreateShortLink(); 
                 link = new Link{
                     LinkName = request.OriginalLink,
                     CookieValue = cookieData,
-                    ShortName = await CreateShortLink()
+                    ShortName = _baseUrl + newShortLink
                 };
                 await _links.InsertOneAsync(link);           
             }
