@@ -27,7 +27,8 @@ namespace LinkShortener.Controllers
         [HttpPost("new")]
         public async Task<CreateShortLinkResponse> Create(CreateShortLinkRequest request)
         {
-            var cookieData = HttpContext.Request.Cookies["Key"];
+            string cookieData = Request.Cookies.ToString();
+            
             var newLink = await _linksService.CreateAsync(request, cookieData);
             return newLink;
         }
@@ -35,6 +36,8 @@ namespace LinkShortener.Controllers
         [HttpGet("all")]
         public async Task<List<GetLinkItemResponse>> GetAllLinks()
         {
+            var cookieData = Request.Cookies.Keys;
+            
             var result =  await _linksService.GetAllLinksAsync();
             if (result == null)
             {

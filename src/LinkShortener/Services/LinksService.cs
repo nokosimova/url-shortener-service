@@ -29,11 +29,14 @@ namespace LinkShortener.Services{
             _links = mongoDatabase.GetCollection<Link>(DatabaseSetting.Value.CollectionName);
 
              //get base Url for generating short links:
-            _baseUrl = $"{accessor.HttpContext.Request.Scheme}://{accessor.HttpContext.Request.Host.ToUriComponent()}";
+            _baseUrl = $"{accessor.HttpContext.Request.Scheme}://{accessor.HttpContext.Request.Host.ToUriComponent()}/";
         }
 
-        public async Task<CreateShortLinkResponse> CreateAsync(CreateShortLinkRequest request, string cookieData)
+        public async Task<CreateShortLinkResponse> CreateAsync(CreateShortLinkRequest request, string cookieData = null)
         {
+            if (!Uri.IsWellFormedUriString(request.OriginalLink, UriKind.Absolute))
+                throw new BadHttpRequestException("Incorrect url format");
+            
             var filter = Builders<Link>.Filter.Eq(x => x.LinkName, request.OriginalLink);
             var link = await _links.Find(filter).FirstOrDefaultAsync();
 
@@ -49,17 +52,17 @@ namespace LinkShortener.Services{
 
             return new CreateShortLinkResponse{
                     OriginalLink = link.LinkName,
-                    ShortLink = link.ShortName
+                    ShortLink = _baseUrl + link.ShortName
                 };
         }
 
-        public async Task<List<GetLinkItemResponse>> GetAllLinksAsync()
+        public async Task<List<GetLinkItemResponse>> GetAllLinksAsync(string cookieData = null)
         {
             var links = await _links.Find(Builders<Link>.Filter.Empty).ToListAsync();
 
             return links.Select(x => new GetLinkItemResponse{
                         OriginalLink = x.LinkName,
-                        ShortLink = x.ShortName,
+                        ShortLink = _baseUrl + x.ShortName,
                         VisitsCount = x.VisitsCount
                     }).ToList();
         }
@@ -80,6 +83,7 @@ namespace LinkShortener.Services{
                 OriginalLink = link?.LinkName
             };  
         }
+
         private async Task<string> CreateShortLink()
         {
             var result = await GenerateLink();
@@ -90,6 +94,7 @@ namespace LinkShortener.Services{
                 result = await GenerateLink();
                 link = await _links.Find(Builders<Link>.Filter.Eq(x => x.ShortName, result)).ToListAsync();
             }
+
             return new string(result);
         }
 
