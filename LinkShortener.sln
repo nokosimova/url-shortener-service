@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinkShortener", "src\LinkShortener\LinkShortener.csproj", "{14A6FF53-F225-46F3-BB43-EA58FD9A0534}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{1229B28B-D4AE-4A80-BD84-244637DCDBC7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{559A384F-F064-470B-B235-369E77A6AA51}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinkShortener.Tests.Services", "tests\LinkShortener.Tests.Services\LinkShortener.Tests.Services.csproj", "{84270A62-279E-4BD1-9C0C-41B73E90917A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{14A6FF53-F225-46F3-BB43-EA58FD9A0534}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14A6FF53-F225-46F3-BB43-EA58FD9A0534}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14A6FF53-F225-46F3-BB43-EA58FD9A0534}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14A6FF53-F225-46F3-BB43-EA58FD9A0534}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84270A62-279E-4BD1-9C0C-41B73E90917A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84270A62-279E-4BD1-9C0C-41B73E90917A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84270A62-279E-4BD1-9C0C-41B73E90917A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84270A62-279E-4BD1-9C0C-41B73E90917A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{14A6FF53-F225-46F3-BB43-EA58FD9A0534} = {559A384F-F064-470B-B235-369E77A6AA51}
+		{84270A62-279E-4BD1-9C0C-41B73E90917A} = {1229B28B-D4AE-4A80-BD84-244637DCDBC7}
+	EndGlobalSection
+EndGlobal
